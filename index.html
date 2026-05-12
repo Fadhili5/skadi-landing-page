@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skadi — Real-Time ULD Fleet Intelligence</title>
+  <meta name="description" content="Skadi gives cargo operators complete visibility over their Unit Load Device fleet — temperature, location, flight status, and risk — in real time. Built on IATA ONE Record.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            jet: '#1a1a1a',
+            orange: '#E8470A',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --font: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+      --ink: #1a1a1a;
+      --ink-soft: #555;
+      --ink-muted: #888;
+      --orange: #E8470A;
+      --orange-deep: #d13d08;
+      --surface: #ffffff;
+      --surface-soft: #F4F4F4;
+      --hairline: #e8e8e8;
+      --shadow-card: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.05);
+      --shadow-card-hover: 0 0 0 1px rgba(0,0,0,0.06), 0 16px 40px rgba(0,0,0,0.10);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+      color: var(--ink);
+      background: var(--surface);
+      margin: 0;
+    }
+    h1,h2,h3,h4 { letter-spacing: -0.022em; }
+
+    /* ── Scroll progress ── */
+    .scroll-bar {
+      position: fixed; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--orange); transform-origin: left;
+      transform: scaleX(0); z-index: 999; pointer-events: none;
+    }
+
+    /* ── Nav ── */
+    .nav-wrap {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(24px) saturate(1.6);
+      -webkit-backdrop-filter: blur(24px) saturate(1.6);
+      border-bottom: 1px solid var(--hairline);
+      transition: box-shadow 0.2s ease;
+    }
+    .nav-wrap.scrolled { box-shadow: 0 1px 0 rgba(0,0,0,0.06); }
+    .nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 24px;
+      height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 24px;
+    }
+    .nav-logo {
+      display: inline-flex; align-items: flex-end; gap: 3px;
+      text-decoration: none; flex-shrink: 0;
+    }
+    .nav-logo-word {
+      font-size: 20px; font-weight: 900; color: var(--ink);
+      letter-spacing: -0.04em; line-height: 1;
+    }
+    .nav-logo-sq {
+      width: 9px; height: 9px; background: var(--orange);
+      flex-shrink: 0; margin-bottom: 3px;
+    }
+    .nav-links {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .nav-links a {
+      font-size: 14px; font-weight: 500; color: var(--ink-soft);
+      text-decoration: none; padding: 6px 12px; border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-links a:hover { color: var(--ink); background: var(--surface-soft); }
+    .btn-primary {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--orange); color: #fff;
+      font-size: 14px; font-weight: 600;
+      padding: 9px 20px; border: none; cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, transform 0.15s;
+    }
+    .btn-primary:hover { background: var(--orange-deep); transform: translateY(-1px); }
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1.5px solid var(--ink); color: var(--ink);
+      font-size: 14px; font-weight: 600;
+      padding: 9px 20px; text-decoration: none;
+      transition: background 0.15s, color 0.15s, transform 0.15s;
+    }
+    .btn-outline:hover { background: var(--ink); color: #fff; transform: translateY(-1px); }
+    .btn-lg { padding: 14px 32px; font-size: 15px; }
+
+    /* ── Hero ── */
+    .hero {
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.60) 50%, rgba(0,0,0,0.82) 100%),
+        url('image-2026-05-13-035307.png') center center / cover no-repeat;
+      min-height: 100svh;
+      display: flex; flex-direction: column;
+      padding: 0 24px;
+    }
+    .hero-body {
+      max-width: 1200px; margin: 0 auto; width: 100%;
+      flex: 1;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 80px 0 60px;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.7);
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 6px 14px; margin-bottom: 32px;
+      width: fit-content;
+    }
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--orange); flex-shrink: 0;
+      animation: livepulse 2s ease-in-out infinite;
+    }
+    @keyframes livepulse {
+      0%,100% { opacity:1; transform: scale(1); }
+      50% { opacity:0.4; transform: scale(0.8); }
+    }
+    .hero-h1 {
+      font-size: clamp(3rem, 7vw, 6rem);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.035em;
+      color: #fff;
+      margin: 0 0 24px;
+    }
+    .hero-h1 .accent { color: var(--orange); }
+    .hero-sub {
+      font-size: clamp(1rem, 1.5vw, 1.2rem);
+      color: rgba(255,255,255,0.65);
+      line-height: 1.55;
+      max-width: 580px;
+      margin: 0 0 36px;
+    }
+    .hero-ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 48px; }
+    .hero-trust {
+      display: flex; flex-wrap: wrap; gap: 20px;
+      color: rgba(255,255,255,0.45); font-size: 13px;
+    }
+    .hero-trust span { display: flex; align-items: center; gap: 6px; }
+    .hero-trust .chk { color: var(--orange); font-weight: 700; }
+
+    /* ── Stats strip ── */
+    .stats-strip {
+      border-top: 1px solid var(--hairline);
+      border-bottom: 1px solid var(--hairline);
+    }
+    .stats-strip-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; flex-wrap: wrap;
+    }
+    .stat-pill {
+      flex: 1; min-width: 160px;
+      padding: 20px 28px;
+      border-right: 1px solid var(--hairline);
+      display: flex; align-items: center; gap: 10px;
+      font-size: 14px; color: var(--ink-muted);
+    }
+    .stat-pill:last-child { border-right: none; }
+    .stat-pill strong { color: var(--ink); font-weight: 700; font-size: 15px; }
+
+    /* ── Section base ── */
+    .section { padding: 96px 24px; }
+    .section-soft { background: var(--surface-soft); }
+    .section-dark { background: var(--ink); }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+    .section-tag {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--orange);
+      display: block; margin-bottom: 14px;
+    }
+    .section-h2 {
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 800; line-height: 1.05;
+      margin: 0 0 16px;
+    }
+    .section-lede {
+      font-size: 18px; color: var(--ink-soft);
+      line-height: 1.5; max-width: 600px;
+      margin: 0 0 56px;
+    }
+    .accent-bar { width: 36px; height: 3px; background: var(--orange); margin-bottom: 20px; }
+
+    /* ── Dashboard mock ── */
+    .dash-frame {
+      background: #111;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+      overflow: hidden;
+      max-width: 960px; margin: 0 auto;
+    }
+    .dash-chrome {
+      height: 36px; background: #0a0a0a;
+      display: flex; align-items: center;
+      padding: 0 16px; gap: 7px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .dash-dot { width: 11px; height: 11px; border-radius: 50%; }
+    .dash-url {
+      margin-left: 12px; font-size: 11px; font-family: monospace;
+      color: #444;
+    }
+    .dash-live {
+      margin-left: auto; font-size: 10px; font-weight: 700;
+      color: var(--orange); letter-spacing: 0.05em;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .dash-body {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 0; min-height: 360px;
+    }
+    .dash-sidebar {
+      background: #0d0d0d;
+      border-right: 1px solid rgba(255,255,255,0.05);
+      padding: 16px 8px;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .dash-sidebar-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: #333;
+      padding: 0 8px; margin-bottom: 8px;
+    }
+    .dash-nav-item {
+      font-size: 11px; padding: 7px 10px; border-radius: 4px;
+      color: #555; cursor: pointer;
+    }
+    .dash-nav-item.active {
+      background: var(--orange); color: #fff; font-weight: 600;
+    }
+    .dash-alert-badge {
+      margin-top: auto; padding: 8px;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10px; font-weight: 700; color: var(--orange);
+    }
+    .dash-main { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .dash-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+    .dash-card {
+      background: #1a1a1a; border-radius: 4px; padding: 12px;
+    }
+    .dash-card-label { font-size: 9px; color: #444; text-transform: uppercase; letter-spacing: 0.08em; }
+    .dash-card-value { font-size: 26px; font-weight: 900; color: #fff; line-height: 1; margin: 4px 0; }
+    .dash-card-value.orange { color: var(--orange); }
+    .dash-card-value.green { color: #4ade80; }
+    .dash-card-sub { font-size: 9px; color: #444; }
+    .dash-card-sub.orange { color: var(--orange); font-weight: 600; }
+    .dash-card-sub.green { color: #4ade80; }
+    .dash-table { background: #141414; border-radius: 4px; overflow: hidden; flex: 1; }
+    .dash-thead {
+      display: grid;
+      grid-template-columns: 1.6fr 1.1fr .75fr 1fr .8fr .6fr;
+      padding: 8px 14px;
+      border-bottom: 1px solid #1e1e1e;
+    }
+    .dash-thead span { font-size: 9px; font-weight: 700; color: #333; text-transform: uppercase; letter-spacing: 0.08em; }
+    .dash-row {
+      display: grid;
+      grid-template-columns: 1.6fr 1.1fr .75fr 1fr .8fr .6fr;
+      padding: 9px 14px; border-bottom: 1px solid #1a1a1a;
+      align-items: center;
+    }
+    .dash-row.excursion { background: rgba(232,71,10,0.06); }
+    .dash-row:last-child { border-bottom: none; }
+    .dash-row span { font-size: 10px; color: #555; }
+    .dash-row .uld-id { font-family: monospace; color: #bbb; font-size: 10.5px; }
+    .dash-row .uld-id.excursion { color: var(--orange); font-weight: 700; }
+    .dash-row .temp { font-family: monospace; font-size: 10.5px; font-weight: 600; }
+    .dash-row .temp.ok { color: #4ade80; }
+    .dash-row .temp.warn { color: #facc15; }
+    .dash-row .temp.exc { color: var(--orange); }
+    .dash-row .status.exc { color: var(--orange); font-weight: 700; }
+    .badge {
+      display: inline-block; font-size: 9px; font-weight: 700;
+      padding: 2px 7px; letter-spacing: 0.04em;
+    }
+    .badge-low { background: rgba(74,222,128,.15); color: #4ade80; }
+    .badge-med { background: rgba(250,204,21,.15); color: #facc15; }
+    .badge-high { background: rgba(232,71,10,.2); color: var(--orange); }
+
+    /* ── Bento cards ── */
+    .bento-grid { display: grid; gap: 16px; }
+    .bento-grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .bento-grid-2 { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 900px) { .bento-grid-3 { grid-template-columns: 1fr; } }
+    @media (max-width: 700px) { .bento-grid-2 { grid-template-columns: 1fr; } }
+    .bento-card {
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1),
+                  box-shadow 0.25s ease;
+    }
+    .bento-card:hover { box-shadow: var(--shadow-card-hover); }
+    .bento-card.dark {
+      background: var(--ink); border-color: rgba(255,255,255,0.06);
+    }
+    .bento-card.orange-card { background: var(--orange); border-color: transparent; }
+    .bento-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+    .bento-icon.orange-bg { background: var(--orange); }
+    .bento-icon.dark-bg { background: rgba(255,255,255,0.08); }
+    .bento-icon.ink-bg { background: var(--ink); }
+    .bento-card h3 {
+      font-size: 18px; font-weight: 700; margin: 0 0 10px;
+      letter-spacing: -0.015em;
+    }
+    .bento-card p { font-size: 15px; color: var(--ink-soft); line-height: 1.55; margin: 0; }
+    .bento-card.dark h3 { color: #fff; }
+    .bento-card.dark p { color: rgba(255,255,255,0.55); }
+    .bento-card.orange-card h3 { color: #fff; }
+    .bento-card.orange-card p { color: rgba(255,255,255,0.8); }
+
+    /* ── How it works ── */
+    .how-grid {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      border: 1px solid var(--hairline);
+      background: var(--surface);
+    }
+    @media (max-width: 700px) { .how-grid { grid-template-columns: 1fr; } }
+    .how-step { padding: 40px; border-right: 1px solid var(--hairline); }
+    .how-step:last-child { border-right: none; }
+    @media (max-width: 700px) { .how-step { border-right: none; border-bottom: 1px solid var(--hairline); } }
+    .how-step:last-child { border-bottom: none; }
+    .how-num {
+      font-size: 64px; font-weight: 900; color: #eee;
+      line-height: 1; margin-bottom: 16px;
+    }
+    .how-step h3 { font-size: 20px; font-weight: 700; margin: 0 0 10px; }
+    .how-step p { font-size: 15px; color: var(--ink-soft); line-height: 1.55; margin: 0; }
+
+    /* ── Built for cards ── */
+    .for-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
+    @media (max-width: 700px) { .for-grid { grid-template-columns: 1fr; } }
+    .for-card {
+      border-radius: 16px; padding: 36px;
+    }
+    .for-card.dark { background: var(--ink); }
+    .for-card.light { background: var(--surface); border: 1px solid var(--hairline); }
+    .for-card.orange-bg { background: var(--orange); }
+    .for-tag {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; margin-bottom: 14px; display: block;
+    }
+    .for-card.dark .for-tag { color: var(--orange); }
+    .for-card.light .for-tag { color: var(--orange); }
+    .for-card.orange-bg .for-tag { color: rgba(255,255,255,0.7); }
+    .for-card h3 { font-size: 20px; font-weight: 700; margin: 0 0 10px; }
+    .for-card.dark h3 { color: #fff; }
+    .for-card.light h3 { color: var(--ink); }
+    .for-card.orange-bg h3 { color: #fff; }
+    .for-card p { font-size: 14px; line-height: 1.6; margin: 0 0 20px; }
+    .for-card.dark p { color: rgba(255,255,255,0.55); }
+    .for-card.light p { color: var(--ink-soft); }
+    .for-card.orange-bg p { color: rgba(255,255,255,0.8); }
+    .for-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+    .for-list li { font-size: 13px; display: flex; align-items: center; gap: 8px; }
+    .for-card.dark .for-list li { color: rgba(255,255,255,0.65); }
+    .for-card.light .for-list li { color: var(--ink-soft); }
+    .for-card.orange-bg .for-list li { color: rgba(255,255,255,0.85); }
+    .for-arrow { color: var(--orange); font-weight: 700; flex-shrink: 0; }
+    .for-card.orange-bg .for-arrow { color: #fff; }
+
+    /* ── Tech stack table ── */
+    .tech-table { border: 1px solid rgba(255,255,255,0.08); overflow: hidden; }
+    .tech-header {
+      display: grid; grid-template-columns: 200px 1fr;
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .tech-header span { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #333; }
+    .tech-row {
+      display: grid; grid-template-columns: 200px 1fr;
+      padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
+      align-items: center;
+      transition: background 0.15s;
+    }
+    .tech-row:last-child { border-bottom: none; }
+    .tech-row:hover { background: rgba(232,71,10,0.04); }
+    .tech-label { font-size: 13px; font-weight: 500; color: #666; }
+    .tech-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tech-tag {
+      font-size: 11px; padding: 3px 10px; font-family: monospace;
+      background: rgba(255,255,255,0.05); color: #999;
+    }
+    .tech-tag.highlight {
+      background: rgba(232,71,10,0.15); color: var(--orange); font-weight: 600;
+    }
+
+    /* ── ONE Record tags ── */
+    .or-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .or-tag {
+      font-size: 11px; font-weight: 600; padding: 4px 12px;
+      background: rgba(232,71,10,0.15); color: var(--orange);
+      font-family: monospace;
+    }
+
+    /* ── FAQ ── */
+    .faq-list { max-width: 720px; margin: 0; }
+    .faq-item { border-bottom: 1px solid var(--hairline); }
+    .faq-item:first-child { border-top: 1px solid var(--hairline); }
+    .faq-btn {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0; background: none; border: none; cursor: pointer;
+      text-align: left; gap: 16px;
+    }
+    .faq-q { font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.4; }
+    .faq-icon {
+      color: var(--orange); font-size: 22px; font-weight: 300;
+      flex-shrink: 0; transition: transform 0.2s ease; line-height: 1;
+    }
+    .faq-item.open .faq-icon { transform: rotate(45deg); }
+    .faq-answer { display: none; padding-bottom: 20px; font-size: 14px; color: var(--ink-soft); line-height: 1.7; }
+    .faq-item.open .faq-answer { display: block; }
+
+    /* ── Contact form ── */
+    .form-label {
+      display: block; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: #555; margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%; background: #222; border: 1px solid #333;
+      color: #fff; padding: 12px 16px; font-size: 14px;
+      outline: none; font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus { border-color: var(--orange); }
+    .form-input::placeholder { color: #444; }
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 500px) { .form-grid-2 { grid-template-columns: 1fr; } }
+
+    /* ── Value prop ── */
+    .vp-section { padding: 96px 24px; text-align: center; }
+    .vp-h { font-size: clamp(2.2rem, 4vw, 3.5rem); font-weight: 900; line-height: 1.05; margin: 0 0 20px; }
+    .vp-h .accent { color: var(--orange); }
+    .vp-sub { font-size: 18px; color: var(--ink-soft); max-width: 580px; margin: 0 auto 36px; line-height: 1.55; }
+
+    /* ── Footer ── */
+    .footer { background: #0a0a0a; padding: 56px 24px 32px; }
+    .footer-inner { max-width: 1200px; margin: 0 auto; }
+    .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 32px; margin-bottom: 48px; }
+    @media (max-width: 700px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+    .footer-logo { display: flex; align-items: flex-end; gap: 3px; margin-bottom: 12px; }
+    .footer-logo-word { font-size: 18px; font-weight: 900; color: #fff; letter-spacing: -0.04em; line-height: 1; }
+    .footer-logo-sq { width: 8px; height: 8px; background: var(--orange); margin-bottom: 2px; }
+    .footer-desc { font-size: 13px; color: #444; line-height: 1.6; max-width: 200px; }
+    .footer-col-title { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #333; margin-bottom: 14px; }
+    .footer-col a { display: block; font-size: 13px; color: #444; text-decoration: none; margin-bottom: 10px; transition: color 0.15s; }
+    .footer-col a:hover { color: #fff; }
+    .footer-bottom { border-top: 1px solid #1a1a1a; padding-top: 24px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .footer-copy { font-size: 12px; color: #333; }
+
+    /* ── Scroll reveal ── */
+    .reveal {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.7s cubic-bezier(0.34,1.2,0.64,1),
+                  transform 0.7s cubic-bezier(0.34,1.2,0.64,1);
+    }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+    .reveal[data-delay="1"] { transition-delay: 0.08s; }
+    .reveal[data-delay="2"] { transition-delay: 0.16s; }
+    .reveal[data-delay="3"] { transition-delay: 0.24s; }
+    .reveal[data-delay="4"] { transition-delay: 0.32s; }
+    .reveal[data-delay="5"] { transition-delay: 0.40s; }
+    @media (prefers-reduced-motion: reduce) { .reveal { transition: none; opacity: 1; transform: none; } }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) { .nav-links { display: none; } }
+    @media (max-width: 700px) {
+      .section { padding: 64px 20px; }
+      .hero { min-height: auto; }
+      .hero-body { padding: 100px 0 60px; }
+      .dash-body { grid-template-columns: 1fr; }
+      .dash-sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Scroll progress bar -->
+<div class="scroll-bar" id="scrollBar"></div>
+
+<!-- ════════════════════════════════════════
+     UTILITY BAR
+════════════════════════════════════════ -->
+<div style="background:#111; color:rgba(255,255,255,0.6); font-size:12px; padding:8px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+  <div style="display:flex; align-items:center; gap:8px;">
+    <span class="live-dot" style="flex-shrink:0;"></span>
+    <span style="font-weight:500;">Live demo available — real fleet data, real time</span>
+  </div>
+  <a href="#contact" style="color:rgba(255,255,255,0.6); text-decoration:underline; white-space:nowrap; transition:color 0.15s;" onmouseover="this.style.color='#E8470A'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">Request access →</a>
+</div>
+
+<!-- ════════════════════════════════════════
+     NAV
+════════════════════════════════════════ -->
+<div class="nav-wrap" id="navbar">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <span class="nav-logo-word">skadi</span>
+      <span class="nav-logo-sq"></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#built-for">Built for</a>
+      <a href="#tech">Technology</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <a href="#how-it-works" class="btn-outline" style="display:none;" id="nav-secondary">See how it works</a>
+      <a href="#contact" class="btn-primary">Request Demo</a>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     HERO
+════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-body">
+    <div class="hero-badge">
+      <span class="live-dot"></span>
+      IATA ONE Record Native &nbsp;·&nbsp; Live Fleet Intelligence
+    </div>
+
+    <h1 class="hero-h1">
+      Every ULD.<br>
+      Every degree.<br>
+      <span class="accent">Right now.</span>
+    </h1>
+
+    <p class="hero-sub">
+      Skadi gives cargo operators complete visibility over their Unit Load Device fleet — from warehouse to aircraft hold — in real time. Temperature, location, flight status, and risk. All in one live dashboard.
+    </p>
+
+    <div class="hero-ctas">
+      <a href="#contact" class="btn-primary btn-lg">Request a Demo</a>
+      <a href="#how-it-works" class="btn-outline btn-lg" style="color:#fff; border-color:rgba(255,255,255,0.25);"
+         onmouseover="this.style.background='rgba(255,255,255,0.08)'; this.style.borderColor='rgba(255,255,255,0.4)';"
+         onmouseout="this.style.background='transparent'; this.style.borderColor='rgba(255,255,255,0.25)';">
+        See how it works →
+      </a>
+    </div>
+
+    <div class="hero-trust">
+      <span><span class="chk">✓</span> No proprietary formats</span>
+      <span><span class="chk">✓</span> WebSocket push — no polling</span>
+      <span><span class="chk">✓</span> IATA ONE Record native</span>
+      <span><span class="chk">✓</span> CEIV Pharma ready</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     STATS STRIP
+════════════════════════════════════════ -->
+<div class="stats-strip">
+  <div class="stats-strip-inner">
+    <div class="stat-pill"><strong>100%</strong> fleet visibility, real-time</div>
+    <div class="stat-pill"><strong>&lt;2s</strong> alert latency via WebSocket</div>
+    <div class="stat-pill"><strong>7</strong> ONE Record object types ingested</div>
+    <div class="stat-pill"><strong>Zero</strong> proprietary data formats</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     DASHBOARD MOCK
+════════════════════════════════════════ -->
+<section class="section section-soft">
+  <div class="section-inner">
+    <div class="dash-frame reveal">
+
+      <div class="dash-chrome">
+        <span class="dash-dot" style="background:#E8470A;"></span>
+        <span class="dash-dot" style="background:#2a2a2a;"></span>
+        <span class="dash-dot" style="background:#2a2a2a;"></span>
+        <span class="dash-url">skadi.fleet — Live Dashboard</span>
+        <span class="dash-live">
+          <span class="live-dot" style="width:6px;height:6px;"></span>
+          LIVE
+        </span>
+      </div>
+
+      <div class="dash-body">
+        <div class="dash-sidebar">
+          <div class="dash-sidebar-label">Fleet</div>
+          <div class="dash-nav-item active">Dashboard</div>
+          <div class="dash-nav-item">Map View</div>
+          <div class="dash-nav-item">Cold Chain</div>
+          <div class="dash-nav-item">Alerts</div>
+          <div class="dash-nav-item">Flights</div>
+          <div class="dash-alert-badge">
+            <span class="live-dot" style="width:6px;height:6px;"></span>
+            3 Alerts
+          </div>
+        </div>
+
+        <div class="dash-main">
+          <div class="dash-cards">
+            <div class="dash-card">
+              <div class="dash-card-label">Total ULDs</div>
+              <div class="dash-card-value">248</div>
+              <div class="dash-card-sub orange">↑ 12 in transit</div>
+            </div>
+            <div class="dash-card">
+              <div class="dash-card-label">Active Flights</div>
+              <div class="dash-card-value">34</div>
+              <div class="dash-card-sub">8 hubs covered</div>
+            </div>
+            <div class="dash-card">
+              <div class="dash-card-label">Excursions</div>
+              <div class="dash-card-value orange">3</div>
+              <div class="dash-card-sub orange">⚠ Action needed</div>
+            </div>
+            <div class="dash-card">
+              <div class="dash-card-label">Compliance</div>
+              <div class="dash-card-value green">98.8%</div>
+              <div class="dash-card-sub green">↑ CEIV target</div>
+            </div>
+          </div>
+
+          <div class="dash-table">
+            <div class="dash-thead">
+              <span>ULD ID</span><span>Location</span><span>Temp</span><span>Status</span><span>Flight</span><span>Risk</span>
+            </div>
+            <div class="dash-row">
+              <span class="uld-id">AKE-12847-LH</span>
+              <span>FRA Terminal 1</span>
+              <span class="temp ok">2.4°C</span>
+              <span>In Transit</span>
+              <span style="font-family:monospace;font-size:10px;color:#555;">LH401</span>
+              <span class="badge badge-low">LOW</span>
+            </div>
+            <div class="dash-row">
+              <span class="uld-id">PMC-00312-EK</span>
+              <span>DXB Hub 2</span>
+              <span class="temp warn">18.2°C</span>
+              <span>Loading</span>
+              <span style="font-family:monospace;font-size:10px;color:#555;">EK201</span>
+              <span class="badge badge-med">MED</span>
+            </div>
+            <div class="dash-row excursion">
+              <span class="uld-id excursion">AKE-09234-AF</span>
+              <span>CDG Warehouse</span>
+              <span class="temp exc">!7.9°C</span>
+              <span class="status exc">EXCURSION</span>
+              <span style="font-family:monospace;font-size:10px;color:#444;">Grounded</span>
+              <span class="badge badge-high">HIGH</span>
+            </div>
+            <div class="dash-row">
+              <span class="uld-id">AKH-33091-BA</span>
+              <span>LHR Terminal 5</span>
+              <span class="temp ok">4.1°C</span>
+              <span>Loaded</span>
+              <span style="font-family:monospace;font-size:10px;color:#555;">BA117</span>
+              <span class="badge badge-low">LOW</span>
+            </div>
+            <div class="dash-row" style="border-bottom:none;">
+              <span class="uld-id">PAG-00588-QR</span>
+              <span>DOH Hub</span>
+              <span class="temp ok">3.8°C</span>
+              <span>In Transit</span>
+              <span style="font-family:monospace;font-size:10px;color:#555;">QR523</span>
+              <span class="badge badge-low">LOW</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Annotations -->
+    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:24px; margin-top:24px; font-size:13px; color:#888;">
+      <span style="display:flex;align-items:center;gap:7px;"><span style="width:9px;height:9px;background:#E8470A;border-radius:50%;display:inline-block;"></span>Live excursion alerts</span>
+      <span style="display:flex;align-items:center;gap:7px;"><span style="width:9px;height:9px;background:#4ade80;border-radius:50%;display:inline-block;"></span>Compliant ULDs</span>
+      <span style="display:flex;align-items:center;gap:7px;"><span style="width:9px;height:9px;background:#333;border-radius:50%;display:inline-block;"></span>Real-time sensor readings</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     FEATURES — bento grid
+════════════════════════════════════════ -->
+<section class="section" id="features">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="accent-bar"></div>
+      <h2 class="section-h2">Everything that matters.<br>Nothing that doesn't.</h2>
+      <p class="section-lede">Where traditional cargo systems show you what happened, Skadi shows you what is happening.</p>
+    </div>
+
+    <div class="bento-grid bento-grid-3">
+      <div class="bento-card reveal" data-delay="1">
+        <div class="bento-icon orange-bg">
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+        <h3>Fleet Dashboard</h3>
+        <p>Real-time overview of every ULD — temperature, risk classification, current airport, and active flight. Critical excursions surface immediately with color-coded alerts.</p>
+      </div>
+
+      <div class="bento-card reveal" data-delay="2">
+        <div class="bento-icon orange-bg">
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </div>
+        <h3>Cold Chain Monitoring</h3>
+        <p>Continuous temperature tracking with automatic excursion detection. Every reading logged, timestamped, and aggregated into hourly trend data. Built for CEIV Pharma.</p>
+      </div>
+
+      <div class="bento-card reveal" data-delay="3">
+        <div class="bento-icon orange-bg">
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
+        </div>
+        <h3>Interactive Fleet Map</h3>
+        <p>Live world map showing active flight routes, ULD positions, and airport locations. Click any flight arc to inspect cargo, departure details, and AviationStack enrichment.</p>
+      </div>
+
+      <div class="bento-card reveal" data-delay="1">
+        <div class="bento-icon ink-bg">
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+        </div>
+        <h3>ULD Detail View</h3>
+        <p>Full sensor history, logistics event timeline (FOH → TFD → MAN → ARR), cargo manifest, shipment linkage, and temperature trend chart. Every data point traces to ONE Record.</p>
+      </div>
+
+      <div class="bento-card reveal" data-delay="2">
+        <div class="bento-icon ink-bg">
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        </div>
+        <h3>Live Alerts</h3>
+        <p>Threshold-based alerting for temperature excursions, extended ground dwell, and missing sensor signal. Delivered in-app via WebSocket push — no polling, no delay.</p>
+      </div>
+
+      <div class="bento-card reveal" data-delay="3">
+        <div class="bento-icon ink-bg">
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+        </div>
+        <h3>Flight Enrichment</h3>
+        <p>AviationStack data overlays real-time flight status: departure times, gate assignments, inbound delay propagation, and aircraft registration on every movement.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     HOW IT WORKS
+════════════════════════════════════════ -->
+<section class="section section-soft" id="how-it-works">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="accent-bar"></div>
+      <h2 class="section-h2">ONE Record native.<br>Zero proprietary formats.</h2>
+      <p class="section-lede">Skadi ingests directly from NE:ONE logistics object streams. No middleware, no translation layer, no proprietary data formats.</p>
+    </div>
+
+    <div class="how-grid reveal">
+      <div class="how-step">
+        <div class="how-num">01</div>
+        <h3>Ingest</h3>
+        <p>NE:ONE streams push ULD, TransportMovement, LogisticsEvent, Sensor, Shipment, and Piece objects directly into Skadi's FastAPI backend.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">02</div>
+        <h3>Process</h3>
+        <p>TimescaleDB hypertables store time-series sensor data with hourly aggregation. Redis pub/sub fans out real-time events. FastAPI correlates flights, cargo, and readings.</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">03</div>
+        <h3>Surface</h3>
+        <p>WebSocket push delivers alerts in under 2 seconds. AviationStack enriches every movement with live flight status. One unified interface for your entire fleet.</p>
+      </div>
+    </div>
+
+    <!-- ONE Record types -->
+    <div class="reveal" style="margin-top:24px; background:var(--ink); padding:24px 28px;">
+      <div style="font-size:10px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#444; margin-bottom:12px;">ONE Record object types ingested</div>
+      <div class="or-tags">
+        <span class="or-tag">ULD</span>
+        <span class="or-tag">TransportMovement</span>
+        <span class="or-tag">Loading</span>
+        <span class="or-tag">LogisticsEvent</span>
+        <span class="or-tag">Shipment</span>
+        <span class="or-tag">Piece</span>
+        <span class="or-tag">Sensor</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     BUILT FOR
+════════════════════════════════════════ -->
+<section class="section" id="built-for">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="accent-bar"></div>
+      <h2 class="section-h2">Built for people<br>who can't afford gaps.</h2>
+      <p class="section-lede">Skadi is designed for operators where temperature compliance, turnaround time, and fleet visibility are non-negotiable.</p>
+    </div>
+
+    <div class="for-grid">
+      <div class="for-card dark reveal" data-delay="1">
+        <span class="for-tag">Ground Operations</span>
+        <h3>Ground handlers &amp; cargo terminals</h3>
+        <p>Track ULD temperature compliance across multiple airlines from a single dashboard. Know every unit's status before the aircraft doors close.</p>
+        <ul class="for-list">
+          <li><span class="for-arrow">→</span>Multi-airline ULD tracking</li>
+          <li><span class="for-arrow">→</span>Excursion detection before departure</li>
+          <li><span class="for-arrow">→</span>Ground dwell alerts</li>
+        </ul>
+      </div>
+
+      <div class="for-card light reveal" data-delay="2">
+        <span class="for-tag">Freight Forwarding</span>
+        <h3>Freight forwarders</h3>
+        <p>Managing pharmaceutical and perishable shipments where temperature deviation means cargo loss. Full cold chain traceability from FOH to ARR.</p>
+        <ul class="for-list">
+          <li><span class="for-arrow">→</span>IATA CEIV Pharma compliance</li>
+          <li><span class="for-arrow">→</span>Full shipment linkage</li>
+          <li><span class="for-arrow">→</span>Temperature audit trail</li>
+        </ul>
+      </div>
+
+      <div class="for-card light reveal" data-delay="1">
+        <span class="for-tag">Airline Operations</span>
+        <h3>Airlines</h3>
+        <p>Fleet health monitoring and turnaround time tracking across hubs. AviationStack integration surfaces delay propagation before it becomes your problem.</p>
+        <ul class="for-list">
+          <li><span class="for-arrow">→</span>Fleet health monitoring</li>
+          <li><span class="for-arrow">→</span>Turnaround time visibility</li>
+          <li><span class="for-arrow">→</span>Delay propagation tracking</li>
+        </ul>
+      </div>
+
+      <div class="for-card orange-bg reveal" data-delay="2">
+        <span class="for-tag">Control Centers</span>
+        <h3>Cargo operations centers</h3>
+        <p>Single-pane view across hubs and transits. Whether you're running 50 ULDs or 5,000, Skadi scales to your operation without adding complexity.</p>
+        <ul class="for-list">
+          <li><span class="for-arrow">→</span>Multi-hub visibility</li>
+          <li><span class="for-arrow">→</span>Live interactive flight map</li>
+          <li><span class="for-arrow">→</span>WebSocket push alerts</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     TECH STACK
+════════════════════════════════════════ -->
+<section class="section section-dark" id="tech">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="accent-bar"></div>
+      <h2 class="section-h2" style="color:#fff;">Built on proven<br>production stack.</h2>
+      <p class="section-lede" style="color:#666;">No novel infrastructure risk. Established open standards, purpose-configured for air cargo intelligence.</p>
+    </div>
+
+    <div class="tech-table reveal">
+      <div class="tech-header">
+        <span>Layer</span>
+        <span>Stack</span>
+      </div>
+      <div class="tech-row">
+        <span class="tech-label">Frontend</span>
+        <div class="tech-tags">
+          <span class="tech-tag">React</span>
+          <span class="tech-tag">TypeScript</span>
+          <span class="tech-tag">Tailwind</span>
+          <span class="tech-tag">Leaflet</span>
+          <span class="tech-tag">Recharts</span>
+        </div>
+      </div>
+      <div class="tech-row">
+        <span class="tech-label">Backend</span>
+        <div class="tech-tags">
+          <span class="tech-tag">FastAPI</span>
+          <span class="tech-tag">Python</span>
+          <span class="tech-tag">TimescaleDB</span>
+          <span class="tech-tag">Redis</span>
+        </div>
+      </div>
+      <div class="tech-row">
+        <span class="tech-label">Data standard</span>
+        <div class="tech-tags">
+          <span class="tech-tag highlight">IATA ONE Record</span>
+        </div>
+      </div>
+      <div class="tech-row">
+        <span class="tech-label">Time-series</span>
+        <div class="tech-tags">
+          <span class="tech-tag">TimescaleDB hypertables</span>
+          <span class="tech-tag">Hourly aggregation</span>
+        </div>
+      </div>
+      <div class="tech-row">
+        <span class="tech-label">Real-time</span>
+        <div class="tech-tags">
+          <span class="tech-tag">WebSocket push</span>
+          <span class="tech-tag">Redis pub/sub</span>
+        </div>
+      </div>
+      <div class="tech-row">
+        <span class="tech-label">Flight data</span>
+        <div class="tech-tags">
+          <span class="tech-tag">AviationStack</span>
+          <span class="tech-tag">OpenSky Network</span>
+        </div>
+      </div>
+      <div class="tech-row">
+        <span class="tech-label">Deployment</span>
+        <div class="tech-tags">
+          <span class="tech-tag">Vercel (frontend)</span>
+          <span class="tech-tag">AWS EC2 (backend)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     VALUE PROP
+════════════════════════════════════════ -->
+<section class="vp-section">
+  <div class="reveal" style="max-width:760px; margin:0 auto;">
+    <h2 class="vp-h">
+      Track every ULD.<br>
+      Monitor every degree.<br>
+      <span class="accent">Know before it breaks.</span>
+    </h2>
+    <p class="vp-sub">
+      Skadi connects your cargo data standard, your sensor stream, and your flight operations into one live interface — purpose-built for the precision demands of modern air cargo.
+    </p>
+    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:12px;">
+      <a href="#contact" class="btn-primary btn-lg">Request a Demo</a>
+      <a href="#tech" class="btn-outline btn-lg">View tech stack →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     FAQ
+════════════════════════════════════════ -->
+<section class="section section-soft" id="faq">
+  <div class="section-inner">
+    <div style="display:grid; grid-template-columns:1fr 2fr; gap:64px; align-items:start;" class="faq-layout">
+      <div class="reveal">
+        <div class="accent-bar"></div>
+        <h2 class="section-h2" style="font-size:clamp(1.8rem,2.5vw,2.4rem);">Frequently<br>asked</h2>
+        <p style="font-size:15px; color:var(--ink-soft); line-height:1.6; margin-top:12px;">Questions about Skadi's capabilities, integration, and compliance.</p>
+      </div>
+
+      <div class="faq-list reveal" data-delay="1">
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFaq(this)">
+            <span class="faq-q">Does Skadi require a NE:ONE server?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            Skadi is built natively on the IATA ONE Record standard and integrates directly with NE:ONE logistics object streams. Your existing ONE Record infrastructure plugs straight in — no data format translation required.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFaq(this)">
+            <span class="faq-q">How does cold chain compliance work?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            Skadi continuously ingests sensor readings and detects threshold excursions automatically. Every reading is logged with a timestamp and ONE Record source IRI. Hourly aggregations build audit-ready trend data designed around IATA CEIV Pharma requirements.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFaq(this)">
+            <span class="faq-q">Is AviationStack flight data live?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            Yes. AviationStack integration runs through a backend proxy to keep API keys off the client. The proxy enriches every transport movement with actual departure times, gate assignments, aircraft registration, and inbound delay status in real time.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFaq(this)">
+            <span class="faq-q">How are alerts delivered?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            Alerts are pushed via WebSocket directly to the dashboard — no polling interval, no delay. The backend uses Redis pub/sub to fan out events the moment a threshold is crossed. End-to-end alert latency is under 2 seconds.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-btn" onclick="toggleFaq(this)">
+            <span class="faq-q">What scale does Skadi support?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            TimescaleDB hypertables handle time-series sensor data at scale with automatic partitioning and hourly aggregation. The architecture runs on AWS EC2 (backend) and Vercel (frontend), scaling independently. Contact us to discuss your fleet size and throughput requirements.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     CONTACT
+════════════════════════════════════════ -->
+<section class="section section-dark" id="contact">
+  <div class="section-inner">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:start;" class="contact-layout">
+
+      <div class="reveal">
+        <div class="accent-bar"></div>
+        <h2 class="section-h2" style="color:#fff;">See Skadi with<br>your fleet data.</h2>
+        <p style="font-size:16px; color:#666; line-height:1.6; margin:16px 0 32px;">Book a demo and we'll walk through the platform using real operational scenarios — cold chain, fleet map, live alerts, and ONE Record integration.</p>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; align-items:center; gap:10px; font-size:14px; color:#666;">
+            <span style="color:var(--orange); font-weight:700; font-size:16px;">✓</span> 30-minute live walkthrough
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; font-size:14px; color:#666;">
+            <span style="color:var(--orange); font-weight:700; font-size:16px;">✓</span> Real fleet data, not slides
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; font-size:14px; color:#666;">
+            <span style="color:var(--orange); font-weight:700; font-size:16px;">✓</span> Q&amp;A on ONE Record integration
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; font-size:14px; color:#666;">
+            <span style="color:var(--orange); font-weight:700; font-size:16px;">✓</span> Cold chain compliance walkthrough
+          </div>
+        </div>
+      </div>
+
+      <form class="reveal" data-delay="1" style="display:flex; flex-direction:column; gap:16px;" onsubmit="handleSubmit(event)">
+        <div class="form-grid-2">
+          <div>
+            <label class="form-label">Name</label>
+            <input type="text" class="form-input" placeholder="Your name" required>
+          </div>
+          <div>
+            <label class="form-label">Organisation</label>
+            <input type="text" class="form-input" placeholder="Airline / Handler / Forwarder">
+          </div>
+        </div>
+        <div>
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" placeholder="you@organisation.com" required>
+        </div>
+        <div>
+          <label class="form-label">Message</label>
+          <textarea class="form-input" rows="4" placeholder="Fleet size, current systems, what you need..." style="resize:none;"></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%; padding:14px; font-size:15px;">
+          Request Demo →
+        </button>
+      </form>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">
+          <span class="footer-logo-word">skadi</span>
+          <span class="footer-logo-sq"></span>
+        </div>
+        <p class="footer-desc">Real-time ULD fleet intelligence. Built on IATA ONE Record.</p>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Product</div>
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#tech">Technology</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Company</div>
+        <a href="#built-for">Built for</a>
+        <a href="#faq">FAQ</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Standards</div>
+        <span style="display:block; font-size:13px; color:#444; margin-bottom:10px;">IATA ONE Record</span>
+        <span style="display:block; font-size:13px; color:#444; margin-bottom:10px;">CEIV Pharma</span>
+        <span style="display:block; font-size:13px; color:#444;">NE:ONE</span>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2025 Skadi. Real-time ULD fleet intelligence.</span>
+      <span class="footer-copy">Built on IATA ONE Record &nbsp;·&nbsp; CEIV Pharma ready</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ── Scroll progress bar ──
+  (function () {
+    const bar = document.getElementById('scrollBar');
+    if (!bar) return;
+    let raf = 0;
+    function update() {
+      const max = document.body.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+      raf = 0;
+    }
+    window.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(update); }, { passive: true });
+    update();
+  })();
+
+  // ── Nav scroll shadow ──
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 8);
+  }, { passive: true });
+
+  // ── Scroll reveal ──
+  (function () {
+    const targets = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.10, rootMargin: '0px 0px -4% 0px' });
+    targets.forEach(t => {
+      const r = t.getBoundingClientRect();
+      if (r.top < window.innerHeight * 0.98) { t.classList.add('in'); }
+      else { io.observe(t); }
+    });
+    setTimeout(() => targets.forEach(t => t.classList.add('in')), 1200);
+  })();
+
+  // ── Card 3D tilt ──
+  (function () {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.querySelectorAll('.bento-card').forEach(card => {
+      const MAX = 4;
+      card.addEventListener('mousemove', (e) => {
+        const r = card.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5;
+        const y = (e.clientY - r.top) / r.height - 0.5;
+        card.style.transition = 'transform 0.1s linear, box-shadow 0.25s ease';
+        card.style.transform = `perspective(700px) rotateX(${(-y * MAX).toFixed(2)}deg) rotateY(${(x * MAX).toFixed(2)}deg) translateY(-3px)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transition = 'transform 0.5s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease';
+        card.style.transform = '';
+      });
+    });
+  })();
+
+  // ── FAQ toggle ──
+  function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+  }
+
+  // ── Form submit placeholder ──
+  function handleSubmit(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('[type=submit]');
+    btn.textContent = 'Sent! We\'ll be in touch.';
+    btn.style.background = '#222';
+    btn.disabled = true;
+  }
+
+  // ── Responsive: FAQ layout ──
+  function applyResponsive() {
+    const faqLayout = document.querySelector('.faq-layout');
+    const contactLayout = document.querySelector('.contact-layout');
+    if (window.innerWidth < 800) {
+      if (faqLayout) faqLayout.style.gridTemplateColumns = '1fr';
+      if (contactLayout) contactLayout.style.gridTemplateColumns = '1fr';
+    } else {
+      if (faqLayout) faqLayout.style.gridTemplateColumns = '1fr 2fr';
+      if (contactLayout) contactLayout.style.gridTemplateColumns = '1fr 1fr';
+    }
+  }
+  applyResponsive();
+  window.addEventListener('resize', applyResponsive);
+</script>
+</body>
+</html>
