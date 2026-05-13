@@ -111,12 +111,35 @@
 
     /* ── Hero ── */
     .hero {
-      background:
-        linear-gradient(180deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.60) 50%, rgba(0,0,0,0.82) 100%),
-        url('image-2026-05-13-035307.png') center center / cover no-repeat;
+      position: relative;
+      overflow: hidden;
       min-height: 100svh;
       display: flex; flex-direction: column;
       padding: 0 24px;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: -6%;
+      background: url('image-2026-05-13-035307.png') center center / cover no-repeat;
+      animation: kenBurns 22s ease-in-out infinite alternate;
+      z-index: 0;
+      will-change: transform;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.70) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.82) 100%);
+      z-index: 1;
+    }
+    .hero > * { position: relative; z-index: 2; }
+    @keyframes kenBurns {
+      0%   { transform: scale(1)    translate(0%,   0%); }
+      100% { transform: scale(1.10) translate(-2%,  1.5%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hero::before { animation: none; }
     }
     .hero-body {
       max-width: 1200px; margin: 0 auto; width: 100%;
