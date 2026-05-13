@@ -523,12 +523,102 @@
 
     /* ── Responsive ── */
     @media (max-width: 900px) { .nav-links { display: none; } }
-    @media (max-width: 700px) {
-      .section { padding: 64px 20px; }
-      .hero { min-height: auto; }
-      .hero-body { padding: 100px 0 60px; }
+
+    /* ── Tablet (≤768px) ── */
+    @media (max-width: 768px) {
+      .bento-grid-3 { grid-template-columns: 1fr 1fr; }
+      .for-grid { grid-template-columns: 1fr 1fr; }
+      .stats-strip-inner { flex-wrap: wrap; }
+      .stat-pill { flex: 1 1 45%; border-right: none; border-bottom: 1px solid var(--hairline); }
+      .stat-pill:nth-child(odd) { border-right: 1px solid var(--hairline); }
+      .stat-pill:last-child { border-bottom: none; }
+      .tech-header,
+      .tech-row { grid-template-columns: 130px 1fr; }
+    }
+
+    /* ── Mobile (≤640px) ── */
+    @media (max-width: 640px) {
+      /* Utility bar */
+      .util-bar-msg { display: none; }
+
+      /* Nav */
+      .nav-inner { padding: 0 16px; }
+
+      /* Hero */
+      .hero { padding: 0 16px; }
+      .hero-body { padding: 88px 0 48px; }
+      .hero-badge { font-size: 10px; padding: 5px 10px; margin-bottom: 20px; }
+      .hero-h1 { font-size: clamp(2.4rem, 11vw, 3.2rem); margin-bottom: 16px; }
+      .hero-sub { font-size: 15px; margin-bottom: 24px; }
+      .hero-ctas { gap: 10px; }
+      .hero-ctas .btn-lg { padding: 12px 22px; font-size: 14px; width: 100%; text-align: center; justify-content: center; }
+      .hero-trust { gap: 10px 16px; font-size: 12px; }
+
+      /* Stats strip */
+      .stats-strip-inner { flex-direction: column; }
+      .stat-pill { flex: none; border-right: none !important; border-bottom: 1px solid var(--hairline); padding: 14px 20px; }
+      .stat-pill:last-child { border-bottom: none; }
+
+      /* Sections */
+      .section { padding: 56px 16px; }
+      .section-h2 { font-size: clamp(1.7rem, 7vw, 2.2rem); }
+      .section-lede { font-size: 15px; margin-bottom: 36px; }
+
+      /* Dashboard mock */
+      .dash-frame { border-radius: 8px; }
       .dash-body { grid-template-columns: 1fr; }
       .dash-sidebar { display: none; }
+      .dash-cards { grid-template-columns: 1fr 1fr; gap: 6px; }
+      .dash-card-value { font-size: 20px; }
+      .dash-thead,
+      .dash-row { grid-template-columns: 1.4fr .9fr .7fr; }
+      .dash-row span:nth-child(4),
+      .dash-row span:nth-child(5),
+      .dash-thead span:nth-child(4),
+      .dash-thead span:nth-child(5) { display: none; }
+
+      /* Bento */
+      .bento-grid-3 { grid-template-columns: 1fr; }
+      .bento-card { padding: 24px; border-radius: 12px; }
+
+      /* How it works */
+      .how-grid { grid-template-columns: 1fr; }
+      .how-step { padding: 28px 24px; border-right: none; border-bottom: 1px solid var(--hairline); }
+      .how-num { font-size: 48px; }
+
+      /* Built for */
+      .for-grid { grid-template-columns: 1fr; }
+      .for-card { padding: 28px 24px; border-radius: 12px; }
+
+      /* Tech table */
+      .tech-header { display: none; }
+      .tech-row { grid-template-columns: 1fr; gap: 8px; padding: 16px; }
+      .tech-label { font-size: 11px; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.08em; }
+
+      /* Value prop */
+      .vp-section { padding: 64px 16px; }
+      .vp-h { font-size: clamp(1.8rem, 8vw, 2.4rem); }
+      .vp-sub { font-size: 15px; }
+      .vp-section .btn-lg { width: 100%; text-align: center; justify-content: center; }
+
+      /* FAQ */
+      .faq-layout { grid-template-columns: 1fr !important; gap: 32px; }
+
+      /* Contact */
+      .contact-layout { grid-template-columns: 1fr !important; gap: 40px; }
+      .form-grid-2 { grid-template-columns: 1fr; }
+
+      /* Footer */
+      .footer { padding: 40px 16px 24px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+      .footer-bottom { flex-direction: column; text-align: center; gap: 6px; }
+    }
+
+    /* ── Small phones (≤380px) ── */
+    @media (max-width: 380px) {
+      .hero-h1 { font-size: 2.1rem; }
+      .dash-cards { grid-template-columns: 1fr 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -543,7 +633,7 @@
 <div style="background:#111; color:rgba(255,255,255,0.6); font-size:12px; padding:8px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
   <div style="display:flex; align-items:center; gap:8px;">
     <span class="live-dot" style="flex-shrink:0;"></span>
-    <span style="font-weight:500;">Live demo available — real fleet data, real time</span>
+    <span style="font-weight:500;" class="util-bar-msg">Live demo available — real fleet data, real time</span>
   </div>
   <a href="#contact" style="color:rgba(255,255,255,0.6); text-decoration:underline; white-space:nowrap; transition:color 0.15s;" onmouseover="this.style.color='#E8470A'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">Request access →</a>
 </div>
