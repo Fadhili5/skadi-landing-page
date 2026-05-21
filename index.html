@@ -651,7 +651,6 @@
       <a href="#features">Features</a>
       <a href="#how-it-works">How it works</a>
       <a href="#built-for">Built for</a>
-      <a href="#tech">Technology</a>
       <a href="#faq">FAQ</a>
     </nav>
     <div style="display:flex; align-items:center; gap:10px;">
@@ -733,10 +732,11 @@
         <div class="dash-sidebar">
           <div class="dash-sidebar-label">Fleet</div>
           <div class="dash-nav-item active">Dashboard</div>
-          <div class="dash-nav-item">Map View</div>
-          <div class="dash-nav-item">Cold Chain</div>
+          <div class="dash-nav-item">Fleet Map</div>
+          <div class="dash-nav-item">ULD Tracking</div>
           <div class="dash-nav-item">Alerts</div>
-          <div class="dash-nav-item">Flights</div>
+          <div class="dash-nav-item">Inventory</div>
+          <div class="dash-nav-item">Analytics</div>
           <div class="dash-alert-badge">
             <span class="live-dot" style="width:6px;height:6px;"></span>
             3 Alerts
@@ -753,7 +753,7 @@
             <div class="dash-card">
               <div class="dash-card-label">Active Flights</div>
               <div class="dash-card-value">34</div>
-              <div class="dash-card-sub">8 hubs covered</div>
+              <div class="dash-card-sub">5 hubs covered</div>
             </div>
             <div class="dash-card">
               <div class="dash-card-label">Excursions</div>
@@ -863,26 +863,34 @@
 
       <div class="bento-card reveal" data-delay="1">
         <div class="bento-icon ink-bg">
-          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         </div>
-        <h3>ULD Detail View</h3>
-        <p>Full sensor history, logistics event timeline (FOH → TFD → MAN → ARR), cargo manifest, shipment linkage, and temperature trend chart. Every data point traces to ONE Record.</p>
+        <h3>3D ULD Detail View</h3>
+        <p>Interactive 3D container visualization — glows red on critical excursion. Side panels show live temp vs set-point, humidity, sensor count, and flight info. Full 72-reading history chart, custody timeline, and quick-action buttons. Draggable and resizable.</p>
       </div>
 
       <div class="bento-card reveal" data-delay="2">
         <div class="bento-icon ink-bg">
           <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
         </div>
-        <h3>Live Alerts</h3>
-        <p>Threshold-based alerting for temperature excursions, extended ground dwell, and missing sensor signal. Delivered in-app via WebSocket push — no polling, no delay.</p>
+        <h3>Alerts Center</h3>
+        <p>Fleet-wide alert feed filtered by severity — critical, warning, info. Every alert links directly to the ULD that triggered it. Delivered via WebSocket push with no polling delay.</p>
       </div>
 
       <div class="bento-card reveal" data-delay="3">
         <div class="bento-icon ink-bg">
-          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
         </div>
-        <h3>Flight Enrichment</h3>
-        <p>AviationStack data overlays real-time flight status: departure times, gate assignments, inbound delay propagation, and aircraft registration on every movement.</p>
+        <h3>Inventory</h3>
+        <p>Fleet stock by ULD type — AKE, RKN, PMC, PAG, and more. Available, in-use, and maintenance counts per type. Airport × type distribution matrix with surplus and shortage detection per station.</p>
+      </div>
+
+      <div class="bento-card reveal" data-delay="1">
+        <div class="bento-icon orange-bg">
+          <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        </div>
+        <h3>Analytics</h3>
+        <p>Three-tab report center with 6h/12h/24h range filter. Temperature distribution, excursion logs with max deviation and duration, per-ULD compliance sparklines, airport risk ranking, and CSV export.</p>
       </div>
     </div>
   </div>
@@ -992,78 +1000,6 @@
   </div>
 </section>
 
-<!-- ════════════════════════════════════════
-     TECH STACK
-════════════════════════════════════════ -->
-<section class="section section-dark" id="tech">
-  <div class="section-inner">
-    <div class="reveal">
-      <div class="accent-bar"></div>
-      <h2 class="section-h2" style="color:#fff;">Built on proven<br>production stack.</h2>
-      <p class="section-lede" style="color:#666;">No novel infrastructure risk. Established open standards, purpose-configured for air cargo intelligence.</p>
-    </div>
-
-    <div class="tech-table reveal">
-      <div class="tech-header">
-        <span>Layer</span>
-        <span>Stack</span>
-      </div>
-      <div class="tech-row">
-        <span class="tech-label">Frontend</span>
-        <div class="tech-tags">
-          <span class="tech-tag">React</span>
-          <span class="tech-tag">TypeScript</span>
-          <span class="tech-tag">Tailwind</span>
-          <span class="tech-tag">Leaflet</span>
-          <span class="tech-tag">Recharts</span>
-        </div>
-      </div>
-      <div class="tech-row">
-        <span class="tech-label">Backend</span>
-        <div class="tech-tags">
-          <span class="tech-tag">FastAPI</span>
-          <span class="tech-tag">Python</span>
-          <span class="tech-tag">TimescaleDB</span>
-          <span class="tech-tag">Redis</span>
-        </div>
-      </div>
-      <div class="tech-row">
-        <span class="tech-label">Data standard</span>
-        <div class="tech-tags">
-          <span class="tech-tag highlight">IATA ONE Record</span>
-        </div>
-      </div>
-      <div class="tech-row">
-        <span class="tech-label">Time-series</span>
-        <div class="tech-tags">
-          <span class="tech-tag">TimescaleDB hypertables</span>
-          <span class="tech-tag">Hourly aggregation</span>
-        </div>
-      </div>
-      <div class="tech-row">
-        <span class="tech-label">Real-time</span>
-        <div class="tech-tags">
-          <span class="tech-tag">WebSocket push</span>
-          <span class="tech-tag">Redis pub/sub</span>
-        </div>
-      </div>
-      <div class="tech-row">
-        <span class="tech-label">Flight data</span>
-        <div class="tech-tags">
-          <span class="tech-tag">AviationStack</span>
-          <span class="tech-tag">OpenSky Network</span>
-        </div>
-      </div>
-      <div class="tech-row">
-        <span class="tech-label">Deployment</span>
-        <div class="tech-tags">
-          <span class="tech-tag">Vercel (frontend)</span>
-          <span class="tech-tag">AWS EC2 (backend)</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ════════════════════════════════════════
      VALUE PROP
@@ -1080,7 +1016,7 @@
     </p>
     <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:12px;">
       <a href="#contact" class="btn-primary btn-lg">Request a Demo</a>
-      <a href="#tech" class="btn-outline btn-lg">View tech stack →</a>
+      <a href="#how-it-works" class="btn-outline btn-lg">How it works →</a>
     </div>
   </div>
 </section>
@@ -1225,7 +1161,7 @@
         <div class="footer-col-title">Product</div>
         <a href="#features">Features</a>
         <a href="#how-it-works">How it works</a>
-        <a href="#tech">Technology</a>
+        <a href="#built-for">Built for</a>
       </div>
       <div class="footer-col">
         <div class="footer-col-title">Company</div>
