@@ -1134,6 +1134,7 @@
           <label class="form-label">Message</label>
           <textarea name="message" class="form-input" rows="4" placeholder="Fleet size, current systems, what you need..." style="resize:none;"></textarea>
         </div>
+        <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" style="display:none;" aria-hidden="true">
         <button type="submit" id="demo-submit" class="btn-primary" style="width:100%; padding:14px; font-size:15px;">
           Request Demo →
         </button>
@@ -1246,30 +1247,45 @@
     if (!wasOpen) item.classList.add('open');
   }
 
-  // ── Form submit → Make.com → Notion ──
+  // ── Form submit → Web3Forms → email inbox ──
+  // Get a free access key at https://web3forms.com (enter the destination
+  // address, confirm the email, paste the key below). The key is public by
+  // design — it only allows sending to the address it was issued for.
+  const WEB3FORMS_ACCESS_KEY = '905b5f58-37e0-4ac5-9f3f-9589b8001533';
+  const CONTACT_EMAIL = 'denisfadhili@skadeai.com';
+
   async function handleSubmit(e) {
     e.preventDefault();
     const form = e.target;
     const btn = document.getElementById('demo-submit');
     const status = document.getElementById('demo-status');
 
+    // Honeypot: bots fill hidden fields, humans don't.
+    if (form.botcheck && form.botcheck.checked) return;
+
     btn.disabled = true;
     btn.textContent = 'Sending…';
+    status.style.display = 'none';
 
     const payload = {
+      access_key: WEB3FORMS_ACCESS_KEY,
+      subject: `Demo request — ${form.name.value}${form.organisation.value ? ' (' + form.organisation.value + ')' : ''}`,
+      from_name: 'Skade Landing Page',
       name: form.name.value,
       email: form.email.value,
       organisation: form.organisation.value,
       message: form.message.value,
-      submitted_at: new Date().toISOString(),
     };
 
     try {
-      await fetch('https://hook.us2.make.com/w31ll1aqdijx9huusjrn9br3g4eu62w8', {
+      const res = await fetch('https://api.web3forms.com/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify(payload),
       });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.message || `HTTP ${res.status}`);
+
       btn.textContent = 'Sent! We\'ll be in touch.';
       btn.style.background = '#1a1a1a';
       status.style.display = 'block';
@@ -1277,11 +1293,14 @@
       status.textContent = '✓ Your request landed in our inbox.';
       form.reset();
     } catch (err) {
+      console.error('Demo form submit failed:', err);
       btn.disabled = false;
       btn.textContent = 'Request Demo →';
       status.style.display = 'block';
       status.style.color = '#E8470A';
-      status.textContent = 'Something went wrong — try again or email us directly.';
+      status.innerHTML = 'Something went wrong — email us directly at <a href="mailto:' +
+        CONTACT_EMAIL + '" style="color:#E8470A; text-decoration:underline;">' +
+        CONTACT_EMAIL + '</a>.';
     }
   }
 
